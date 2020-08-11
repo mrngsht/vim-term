@@ -4,8 +4,7 @@ function! TermOpenWithoutFocus(size)
   call win_gotoid(s:now_window_id)
 endfunction 
 
-function! TermOpen(size) 
-  if !exists('g:term_stack_window_id')  
+function TermOpenInner(size) 
     silent! execute 'topleft ' . a:size . ' split'
     silent! execute 'term'
     silent! execute 'setlocal bufhidden=hide'
@@ -13,6 +12,11 @@ function! TermOpen(size)
     silent! execute 'startinsert'
     let g:term_stack_window_id = win_getid()
     let g:term_stack_buf_nr= bufnr('%')
+endfunction
+
+function! TermOpen(size) 
+  if !exists('g:term_stack_window_id')
+    call TermOpenInner(a:size)
   else 
     let s:win_num = win_id2win(g:term_stack_window_id)
     if s:win_num != 0
@@ -27,9 +31,13 @@ function! TermOpen(size)
         call win_gotoid(win_getid(winnr() + 1))
       endif
     else
-      silent! execute 'topleft ' . a:size . ' split +b' . g:term_stack_buf_nr
-      let g:term_stack_window_id = win_getid()
-      let g:term_stack_buf_nr= bufnr('%')
+      if bufexists(g:term_stack_buf_nr)
+        silent! execute 'topleft ' . a:size . ' split +b' . g:term_stack_buf_nr
+        let g:term_stack_window_id = win_getid()
+        let g:term_stack_buf_nr= bufnr('%')
+      else
+        call TermOpenInner(a:size)
+      endif
     endif
   endif
 endfunction
