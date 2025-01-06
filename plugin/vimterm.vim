@@ -10,31 +10,31 @@ function! TermOpenInner(size)
     silent! execute 'setlocal bufhidden=hide'
     silent! execute 'setlocal nobuflisted'
     silent! execute 'startinsert'
-    let g:term_stack_window_id = win_getid()
-    let g:term_stack_buf_nr= bufnr('%')
+    call SaveWindow(tabpagenr(), win_getid())
+    call SaveBuf(tabpagenr(), bufnr('%'))
 endfunction
 
 function! TermOpen(size) 
-  if !exists('g:term_stack_window_id')
+  if !ExistsWindow(tabpagenr())
     call TermOpenInner(a:size)
   else 
-    let s:win_num = win_id2win(g:term_stack_window_id)
+    let s:win_num = win_id2win(GetWindow(tabpagenr()))
     if s:win_num != 0
-      if win_getid() != g:term_stack_window_id 
-        call win_gotoid(g:term_stack_window_id)
+      if win_getid() != GetWindow(tabpagenr())
+        call win_gotoid(GetWindow(tabpagenr()))
         silent! execute 'resize ' . a:size 
-      elseif bufnr('%') != g:term_stack_buf_nr
-        silent! execute 'botright ' . a:size . ' split +b' . g:term_stack_buf_nr
-        let g:term_stack_window_id = win_getid()
-        let g:term_stack_buf_nr= bufnr('%')
+      elseif ExistsBuf(tabpagenr()) && GetBuf(tabpagenr()) != bufnr('%')
+        silent! execute 'botright ' . a:size . ' split +b' . GetBuf(tabpagenr())
+        call SaveWindow(tabpagenr(), win_getid())
+        call SaveBuf(tabpagenr(), bufnr('%'))
       else
         call win_gotoid(win_getid(winnr() + 1))
       endif
     else
-      if bufexists(g:term_stack_buf_nr)
-        silent! execute 'botright ' . a:size . ' split +b' . g:term_stack_buf_nr
-        let g:term_stack_window_id = win_getid()
-        let g:term_stack_buf_nr= bufnr('%')
+      if ExistsBuf(tabpagenr()) && bufexists(GetBuf(tabpagenr()))
+        silent! execute 'botright ' . a:size . ' split +b' . GetBuf(tabpagenr())
+        call SaveWindow(tabpagenr(), win_getid())
+        call SaveBuf(tabpagenr(), bufnr('%'))
       else
         call TermOpenInner(a:size)
       endif
@@ -43,11 +43,11 @@ function! TermOpen(size)
 endfunction
 
 function! TermClose() 
-  if exists('g:term_stack_window_id')  
-    let s:win_num = win_id2win(g:term_stack_window_id)
+  if ExistsWindow(tabpagenr())
+    let s:win_num = win_id2win(GetWindow(tabpagenr()))
     if s:win_num != 0
       silent! execute s:win_num . 'hide'
-      if win_id2win(g:term_stack_window_id) != 0
+      if win_id2win(GetWindow(tabpagenr())) != 0
         return 0
       endif
       return 1
@@ -67,3 +67,40 @@ function! TermToggleWithoutFocus(size)
     call TermOpenWithoutFocus(a:size)
   endif
 endfunction
+
+function! SaveBuf(tabnr, bufnr) abort
+  if !exists('g:term_stack_buf_nr')
+    let g:term_stack_buf_nr = {}
+  endif
+  let g:term_stack_buf_nr[printf("%d", a:tabnr)]=a:bufnr
+endfunction
+
+function! ExistsBuf(tabnr) abort
+  if !exists('g:term_stack_buf_nr')
+    return 0
+  endif
+  return has_key(g:term_stack_buf_nr, printf("%d", a:tabnr))
+endfunction
+
+function! GetBuf(tabnr) abort
+  return g:term_stack_buf_nr[printf("%d", a:tabnr)]
+endfunction
+
+function! SaveWindow(tabnr, winid) abort
+  if !exists('g:term_stack_window_id')
+    let g:term_stack_window_id = {}
+  endif
+  let g:term_stack_window_id[printf("%d", a:tabnr)]=a:winid
+endfunction
+
+function! ExistsWindow(tabnr) abort
+  if !exists('g:term_stack_window_id')
+    return 0
+  endif
+  return has_key(g:term_stack_window_id, printf("%d", a:tabnr))
+endfunction
+
+function! GetWindow(tabnr) abort
+  return g:term_stack_window_id[printf("%d", a:tabnr)]
+endfunction
+
