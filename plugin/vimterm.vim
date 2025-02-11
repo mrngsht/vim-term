@@ -69,38 +69,38 @@ function! TermToggleWithoutFocus(size)
 endfunction
 
 function! SaveBuf(tabnr, bufnr) abort
-  if !exists('g:term_stack_buf_nr')
-    let g:term_stack_buf_nr = {}
+  if !exists('g:term_tab_bufnr_dic')
+    let g:term_tab_bufnr_dic = {}
   endif
-  let g:term_stack_buf_nr[printf("%d", a:tabnr)]=a:bufnr
+  let g:term_tab_bufnr_dic[printf("%d", a:tabnr)]=a:bufnr
 endfunction
 
 function! ExistsBuf(tabnr) abort
-  if !exists('g:term_stack_buf_nr')
+  if !exists('g:term_tab_bufnr_dic')
     return 0
   endif
-  return has_key(g:term_stack_buf_nr, printf("%d", a:tabnr))
+  return has_key(g:term_tab_bufnr_dic, printf("%d", a:tabnr))
 endfunction
 
 function! GetBuf(tabnr) abort
-  return g:term_stack_buf_nr[printf("%d", a:tabnr)]
+  return g:term_tab_bufnr_dic[printf("%d", a:tabnr)]
 endfunction
 
 function! SaveWindow(tabnr, winid) abort
-  if !exists('g:term_stack_window_id')
-    let g:term_stack_window_id = {}
+  if !exists('g:term_tab_winid_dic')
+    let g:term_tab_winid_dic = {}
   endif
-  let g:term_stack_window_id[printf("%d", a:tabnr)]=a:winid
+  let g:term_tab_winid_dic[printf("%d", a:tabnr)]=a:winid
 endfunction
 
 function! ExistsWindow(tabnr) abort
-  if !exists('g:term_stack_window_id')
+  if !exists('g:term_tab_winid_dic')
     return 0
   endif
-  return has_key(g:term_stack_window_id, printf("%d", a:tabnr))
+  return has_key(g:term_tab_winid_dic, printf("%d", a:tabnr))
 endfunction
 
 function! GetWindow(tabnr) abort
-  return g:term_stack_window_id[printf("%d", a:tabnr)]
+  return g:term_tab_winid_dic[printf("%d", a:tabnr)]
 endfunction
 
