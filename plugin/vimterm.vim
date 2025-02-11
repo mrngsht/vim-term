@@ -1,53 +1,37 @@
-function! TermOpenWithoutFocus(size) 
-  let s:now_window_id = win_getid()
-  call TermOpen(a:size)
-  call win_gotoid(s:now_window_id)
-endfunction 
-
-function! TermOpenInner(size) 
-    silent! execute 'botright ' . a:size . ' split'
-    silent! execute 'term'
-    silent! execute 'setlocal bufhidden=hide'
-    silent! execute 'setlocal nobuflisted'
-    silent! execute 'startinsert'
-    call SaveWindow(tabpagenr(), win_getid())
-    call SaveBuf(tabpagenr(), bufnr('%'))
-endfunction
-
 function! TermOpen(size) 
-  if !ExistsWindow(tabpagenr())
-    call TermOpenInner(a:size)
+  if !s:exists_window(tabpagenr())
+    call s:term_open_body(a:size)
   else 
-    let s:win_num = win_id2win(GetWindow(tabpagenr()))
+    let s:win_num = win_id2win(s:get_window(tabpagenr()))
     if s:win_num != 0
-      if win_getid() != GetWindow(tabpagenr())
-        call win_gotoid(GetWindow(tabpagenr()))
+      if win_getid() != s:get_window(tabpagenr())
+        call win_gotoid(s:get_window(tabpagenr()))
         silent! execute 'resize ' . a:size 
-      elseif ExistsBuf(tabpagenr()) && GetBuf(tabpagenr()) != bufnr('%')
-        silent! execute 'botright ' . a:size . ' split +b' . GetBuf(tabpagenr())
-        call SaveWindow(tabpagenr(), win_getid())
-        call SaveBuf(tabpagenr(), bufnr('%'))
+      elseif s:exists_buf(tabpagenr()) && s:get_buf(tabpagenr()) != bufnr('%')
+        silent! execute 'botright ' . a:size . ' split +b' . s:get_buf(tabpagenr())
+        call s:save_window(tabpagenr(), win_getid())
+        call s:save_buf(tabpagenr(), bufnr('%'))
       else
         call win_gotoid(win_getid(winnr() + 1))
       endif
     else
-      if ExistsBuf(tabpagenr()) && bufexists(GetBuf(tabpagenr()))
-        silent! execute 'botright ' . a:size . ' split +b' . GetBuf(tabpagenr())
-        call SaveWindow(tabpagenr(), win_getid())
-        call SaveBuf(tabpagenr(), bufnr('%'))
+      if s:exists_buf(tabpagenr()) && bufexists(s:get_buf(tabpagenr()))
+        silent! execute 'botright ' . a:size . ' split +b' . s:get_buf(tabpagenr())
+        call s:save_window(tabpagenr(), win_getid())
+        call s:save_buf(tabpagenr(), bufnr('%'))
       else
-        call TermOpenInner(a:size)
+        call s:term_open_body(a:size)
       endif
     endif
   endif
 endfunction
 
 function! TermClose() 
-  if ExistsWindow(tabpagenr())
-    let s:win_num = win_id2win(GetWindow(tabpagenr()))
+  if s:exists_window(tabpagenr())
+    let s:win_num = win_id2win(s:get_window(tabpagenr()))
     if s:win_num != 0
       silent! execute s:win_num . 'hide'
-      if win_id2win(GetWindow(tabpagenr())) != 0
+      if win_id2win(s:get_window(tabpagenr())) != 0
         return 0
       endif
       return 1
@@ -68,39 +52,55 @@ function! TermToggleWithoutFocus(size)
   endif
 endfunction
 
-function! SaveBuf(tabnr, bufnr) abort
+function! TermOpenWithoutFocus(size) 
+  let s:now_window_id = win_getid()
+  call TermOpen(a:size)
+  call win_gotoid(s:now_window_id)
+endfunction 
+
+function! s:term_open_body(size) 
+    silent! execute 'botright ' . a:size . ' split'
+    silent! execute 'term'
+    silent! execute 'setlocal bufhidden=hide'
+    silent! execute 'setlocal nobuflisted'
+    silent! execute 'startinsert'
+    call s:save_window(tabpagenr(), win_getid())
+    call s:save_buf(tabpagenr(), bufnr('%'))
+endfunction
+
+function! s:save_buf(tabnr, bufnr) abort
   if !exists('g:term_tab_bufnr_dic')
     let g:term_tab_bufnr_dic = {}
   endif
   let g:term_tab_bufnr_dic[printf("%d", a:tabnr)]=a:bufnr
 endfunction
 
-function! ExistsBuf(tabnr) abort
+function! s:exists_buf(tabnr) abort
   if !exists('g:term_tab_bufnr_dic')
     return 0
   endif
   return has_key(g:term_tab_bufnr_dic, printf("%d", a:tabnr))
 endfunction
 
-function! GetBuf(tabnr) abort
+function! s:get_buf(tabnr) abort
   return g:term_tab_bufnr_dic[printf("%d", a:tabnr)]
 endfunction
 
-function! SaveWindow(tabnr, winid) abort
+function! s:save_window(tabnr, winid) abort
   if !exists('g:term_tab_winid_dic')
     let g:term_tab_winid_dic = {}
   endif
   let g:term_tab_winid_dic[printf("%d", a:tabnr)]=a:winid
 endfunction
 
-function! ExistsWindow(tabnr) abort
+function! s:exists_window(tabnr) abort
   if !exists('g:term_tab_winid_dic')
     return 0
   endif
   return has_key(g:term_tab_winid_dic, printf("%d", a:tabnr))
 endfunction
 
-function! GetWindow(tabnr) abort
+function! s:get_window(tabnr) abort
   return g:term_tab_winid_dic[printf("%d", a:tabnr)]
 endfunction
 
