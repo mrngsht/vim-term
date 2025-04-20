@@ -69,38 +69,25 @@ function! s:term_open_body(size)
 endfunction
 
 function! s:save_buf(tabnr, bufnr) abort
-  if !exists('g:term_tab_bufnr_dic')
-    let g:term_tab_bufnr_dic = {}
-  endif
-  let g:term_tab_bufnr_dic[printf("%d", a:tabnr)]=a:bufnr
+  call settabvar(a:tabnr, 'term_bufnr', a:bufnr)
 endfunction
 
 function! s:exists_buf(tabnr) abort
-  if !exists('g:term_tab_bufnr_dic')
-    return 0
-  endif
-  return has_key(g:term_tab_bufnr_dic, printf("%d", a:tabnr))
+  return gettabvar(a:tabnr, 'term_bufnr') != 0
 endfunction
 
 function! s:get_buf(tabnr) abort
-  return g:term_tab_bufnr_dic[printf("%d", a:tabnr)]
+  return gettabvar(a:tabnr, 'term_bufnr')
 endfunction
 
 function! s:save_window(tabnr, winid) abort
-  if !exists('g:term_tab_winid_dic')
-    let g:term_tab_winid_dic = {}
-  endif
-  let g:term_tab_winid_dic[printf("%d", a:tabnr)]=a:winid
+  call settabvar(a:tabnr, 'term_winid', a:winid)
 endfunction
 
 function! s:exists_window(tabnr) abort
-  if !exists('g:term_tab_winid_dic')
-    return 0
-  endif
-  return has_key(g:term_tab_winid_dic, printf("%d", a:tabnr))
+  return gettabvar(a:tabnr, 'term_winid') != 0
 endfunction
 
 function! s:get_window(tabnr) abort
-  return g:term_tab_winid_dic[printf("%d", a:tabnr)]
+  return gettabvar(a:tabnr, 'term_winid')
 endfunction
-
